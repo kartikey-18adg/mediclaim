@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Heart, Droplets, Wind, Activity, Scale, Moon,
   TrendingUp, TrendingDown, AlertTriangle, RefreshCw,
@@ -13,84 +13,26 @@ import CoverageRadialChart from './CoverageRadialChart';
 import ExerciseRecommendations from './ExerciseRecommendations';
 import MedicationTimeline from './MedicationTimeline';
 import ClaimStatusStrip from './ClaimStatusStrip';
+import { loadAppData, getInitialAppData } from '@/lib/app-data';
 
-const vitals = [
-  {
-    id: 'vital-hr',
-    label: 'Heart Rate',
-    value: '76',
-    unit: 'bpm',
-    trend: 'stable' as const,
-    trendValue: '+2 bpm vs yesterday',
-    status: 'normal' as const,
-    icon: <Heart size={18} className="text-negative" />,
-    normalRange: '60–100 bpm',
-    lastUpdated: '6 min ago',
-  },
-  {
-    id: 'vital-bp',
-    label: 'Blood Pressure',
-    value: '128/83',
-    unit: 'mmHg',
-    trend: 'up' as const,
-    trendValue: '+3 vs 7-day avg',
-    status: 'warning' as const,
-    icon: <Activity size={18} className="text-warning" />,
-    normalRange: '<120/80 mmHg',
-    lastUpdated: '6 min ago',
-  },
-  {
-    id: 'vital-spo2',
-    label: 'SpO₂',
-    value: '97',
-    unit: '%',
-    trend: 'stable' as const,
-    trendValue: 'Stable 3 days',
-    status: 'normal' as const,
-    icon: <Wind size={18} className="text-info" />,
-    normalRange: '95–100%',
-    lastUpdated: '6 min ago',
-  },
-  {
-    id: 'vital-glucose',
-    label: 'Blood Glucose',
-    value: '112',
-    unit: 'mg/dL',
-    trend: 'down' as const,
-    trendValue: '−8 vs yesterday',
-    status: 'warning' as const,
-    icon: <Droplets size={18} className="text-warning" />,
-    normalRange: '70–99 mg/dL',
-    lastUpdated: '2 hrs ago',
-  },
-  {
-    id: 'vital-bmi',
-    label: 'BMI',
-    value: '26.4',
-    unit: 'kg/m²',
-    trend: 'down' as const,
-    trendValue: '−0.3 this month',
-    status: 'warning' as const,
-    icon: <Scale size={18} className="text-warning" />,
-    normalRange: '18.5–24.9',
-    lastUpdated: 'Today',
-  },
-  {
-    id: 'vital-sleep',
-    label: 'Sleep Duration',
-    value: '6.8',
-    unit: 'hrs',
-    trend: 'up' as const,
-    trendValue: '+0.5 hrs vs last week',
-    status: 'normal' as const,
-    icon: <Moon size={18} className="text-accent" />,
-    normalRange: '7–9 hrs/night',
-    lastUpdated: 'This morning',
-  },
-];
+const iconMap = {
+  'Heart Rate': <Heart size={18} className="text-negative" />,
+  'Blood Pressure': <Activity size={18} className="text-warning" />,
+  'SpO₂': <Wind size={18} className="text-info" />,
+  'Blood Glucose': <Droplets size={18} className="text-warning" />,
+  BMI: <Scale size={18} className="text-warning" />,
+  'Sleep Duration': <Moon size={18} className="text-accent" />,
+};
 
 export default function HealthDashboardContent() {
   const [dateRange, setDateRange] = useState('30d');
+  const [appData, setAppData] = useState(getInitialAppData());
+
+  useEffect(() => {
+    void (async () => {
+      setAppData(await loadAppData());
+    })();
+  }, []);
 
   return (
     <div className="px-6 py-6 xl:px-10 2xl:px-16 max-w-screen-2xl mx-auto">
@@ -204,8 +146,12 @@ export default function HealthDashboardContent() {
       <div className="mb-6">
         <h2 className="text-base font-semibold text-foreground mb-3">Current Vitals</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-3">
-          {vitals.map((vital) => (
-            <VitalMetricCard key={vital.id} {...vital} />
+          {appData.vitals.map((vital) => (
+            <VitalMetricCard
+              key={vital.id}
+              {...vital}
+              icon={iconMap[vital.label as keyof typeof iconMap] ?? <Activity size={18} className="text-primary" />}
+            />
           ))}
         </div>
       </div>
@@ -223,7 +169,7 @@ export default function HealthDashboardContent() {
               Aug 2026 <ChevronDown size={12} />
             </button>
           </div>
-          <VitalsTrendChart />
+          <VitalsTrendChart data={appData.vitalsHistory} />
         </div>
 
         {/* Weekly Activity — 2 cols */}
@@ -235,7 +181,7 @@ export default function HealthDashboardContent() {
             </div>
             <span className="badge-muted text-xs">This Week</span>
           </div>
-          <WeeklyActivityChart />
+          <WeeklyActivityChart data={appData.activity} />
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
             <span>Weekly avg: <span className="font-semibold text-foreground tabular-nums">7,530</span> steps</span>
             <span className="text-positive font-semibold flex items-center gap-1">

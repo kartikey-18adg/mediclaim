@@ -57,8 +57,11 @@ export default function ClaimStatusStrip() {
           <h3 className="text-base font-semibold text-foreground">Recent Claims</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Last 90 days</p>
         </div>
-        <Link href="/claims" className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
-          View All <ArrowRight size={12} />
+        <Link
+          href="/claims-workflow"
+          className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+        >
+          Submit a Claim <ArrowRight size={12} />
         </Link>
       </div>
       <div className="space-y-2.5">

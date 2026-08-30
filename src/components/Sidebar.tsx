@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import AppLogo from '@/components/ui/AppLogo';
+import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth-context';
 import {
   LayoutDashboard,
   Heart,
@@ -63,14 +65,6 @@ const navItems: NavItem[] = [
     section: 'main',
   },
   {
-    id: 'nav-claims',
-    label: 'Claims',
-    href: '/claims',
-    icon: <ClipboardList size={18} />,
-    badge: 1,
-    section: 'main',
-  },
-  {
     id: 'nav-claims-workflow',
     label: 'Submit a Claim',
     href: '/claims-workflow',
@@ -123,6 +117,18 @@ const sections = [
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('Signed out successfully');
+      router.push('/sign-up-login-screen');
+    } catch (error) {
+      toast.error('Failed to sign out');
+    }
+  };
 
   return (
     <aside
@@ -218,7 +224,11 @@ export default function Sidebar() {
           )}
         </button>
         {!collapsed && (
-          <button className="btn-ghost w-full justify-start mt-1 text-negative hover:bg-negative/10 hover:text-negative rounded-xl">
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="btn-ghost w-full justify-start mt-1 text-negative hover:bg-negative/10 hover:text-negative rounded-xl"
+          >
             <LogOut size={14} />
             <span className="text-xs font-medium">Sign Out</span>
           </button>

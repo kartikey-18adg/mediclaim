@@ -1,30 +1,21 @@
 'use client';
 
-import React from 'react';
-import dynamic from 'next/dynamic';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import type { ActivityPoint } from '@/lib/app-data';
 
-const BarChart = dynamic(() => import('recharts').then((m) => m.BarChart), { ssr: false });
-const Bar = dynamic(() => import('recharts').then((m) => m.Bar), { ssr: false });
-const XAxis = dynamic(() => import('recharts').then((m) => m.XAxis), { ssr: false });
-const YAxis = dynamic(() => import('recharts').then((m) => m.YAxis), { ssr: false });
-const CartesianGrid = dynamic(() => import('recharts').then((m) => m.CartesianGrid), { ssr: false });
-const Tooltip = dynamic(() => import('recharts').then((m) => m.Tooltip), { ssr: false });
-const ResponsiveContainer = dynamic(
-  () => import('recharts').then((m) => m.ResponsiveContainer),
-  { ssr: false }
-);
-const Cell = dynamic(() => import('recharts').then((m) => m.Cell), { ssr: false });
-const ReferenceLine = dynamic(() => import('recharts').then((m) => m.ReferenceLine), { ssr: false });
-
-const activityData = [
-  { day: 'Mon', steps: 7420, goal: 8000 },
-  { day: 'Tue', steps: 9150, goal: 8000 },
-  { day: 'Wed', steps: 5830, goal: 8000 },
-  { day: 'Thu', steps: 8640, goal: 8000 },
-  { day: 'Fri', steps: 6290, goal: 8000 },
-  { day: 'Sat', steps: 11200, goal: 8000 },
-  { day: 'Sun', steps: 4180, goal: 8000 },
-];
+interface WeeklyActivityChartProps {
+  data: ActivityPoint[];
+}
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -49,10 +40,10 @@ function CustomTooltipContent({ active, payload, label }: CustomTooltipProps) {
   );
 }
 
-export default function WeeklyActivityChart() {
+export default function WeeklyActivityChart({ data }: WeeklyActivityChartProps) {
   return (
     <ResponsiveContainer width="100%" height={180}>
-      <BarChart data={activityData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }} barSize={28}>
+      <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }} barSize={28}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis
           dataKey="day"
@@ -75,7 +66,7 @@ export default function WeeklyActivityChart() {
           label={{ value: 'Goal', position: 'right', fontSize: 10, fill: 'var(--warning)' }}
         />
         <Bar dataKey="steps" radius={[6, 6, 0, 0]}>
-          {activityData.map((entry, index) => (
+          {data.map((entry, index) => (
             <Cell
               key={`cell-steps-${index}`}
               fill={entry.steps >= entry.goal ? 'var(--positive)' : 'var(--primary)'}

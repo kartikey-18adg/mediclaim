@@ -1,14 +1,10 @@
 'use client';
 
-import React from 'react';
-import dynamic from 'next/dynamic';
-
-const RadialBarChart = dynamic(() => import('recharts')?.then((m) => m?.RadialBarChart), { ssr: false });
-const RadialBar = dynamic(() => import('recharts')?.then((m) => m?.RadialBar), { ssr: false });
-const ResponsiveContainer = dynamic(
-  () => import('recharts')?.then((m) => m?.ResponsiveContainer),
-  { ssr: false }
-);
+import {
+  RadialBar,
+  RadialBarChart,
+  ResponsiveContainer,
+} from 'recharts';
 
 const coverageData = [
   { name: 'Used', value: 62, fill: 'var(--primary)' },
