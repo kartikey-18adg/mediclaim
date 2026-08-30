@@ -1,5 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+const globalAppDataClient = globalThis as typeof globalThis & {
+  __mediclaimAppDataSupabaseClient?: SupabaseClient;
+};
+
 export type VitalStatus = 'normal' | 'warning' | 'critical';
 
 export interface ProfileData {
@@ -234,11 +238,15 @@ function getSupabaseClient(): SupabaseClient | null {
     return null;
   }
 
-  try {
-    return createClient(url, key);
-  } catch {
-    return null;
+  if (!globalAppDataClient.__mediclaimAppDataSupabaseClient) {
+    try {
+      globalAppDataClient.__mediclaimAppDataSupabaseClient = createClient(url, key);
+    } catch {
+      return null;
+    }
   }
+
+  return globalAppDataClient.__mediclaimAppDataSupabaseClient;
 }
 
 function mergeAppData(partial?: Partial<AppData> | null): AppData {

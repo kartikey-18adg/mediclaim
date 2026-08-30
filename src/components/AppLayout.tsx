@@ -13,10 +13,10 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, configured } = useAuth();
 
   useEffect(() => {
-    if (loading) return; // Wait for auth to initialize
+    if (loading || !configured) return;
 
     const isAuthRoute = pathname === '/sign-up-login-screen';
 
@@ -27,7 +27,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     if (user && isAuthRoute) {
       router.replace('/');
     }
-  }, [pathname, router, user, loading]);
+  }, [pathname, router, user, loading, configured]);
 
   // Show loading state while auth initializes
   if (loading) {

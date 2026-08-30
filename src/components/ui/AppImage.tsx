@@ -35,24 +35,26 @@ const AppImage = memo(function AppImage({
     fill = false,
     sizes,
     onClick,
-    fallbackSrc = '/assets/images/no_image.png',
+    fallbackSrc,
     loading = 'lazy',
     unoptimized = false,
     ...props
 }: AppImageProps) {
     const [imageSrc, setImageSrc] = useState(src);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(Boolean(src));
     const [hasError, setHasError] = useState(false);
 
     const isExternalUrl = useMemo(() => typeof imageSrc === 'string' && imageSrc.startsWith('http'), [imageSrc]);
     const resolvedUnoptimized = unoptimized || isExternalUrl;
 
     const handleError = useCallback(() => {
-        if (!hasError && imageSrc !== fallbackSrc) {
+        if (fallbackSrc && !hasError && imageSrc !== fallbackSrc) {
             setImageSrc(fallbackSrc);
             setHasError(true);
+            return;
         }
         setIsLoading(false);
+        setHasError(true);
     }, [hasError, imageSrc, fallbackSrc]);
 
     const handleLoad = useCallback(() => {
@@ -66,6 +68,10 @@ const AppImage = memo(function AppImage({
         if (onClick) classes.push('cursor-pointer hover:opacity-90 transition-opacity duration-200');
         return classes.filter(Boolean).join(' ');
     }, [className, isLoading, onClick]);
+
+    if (!imageSrc) {
+        return null;
+    }
 
     const imageProps = useMemo(() => {
         const baseProps: any = {
