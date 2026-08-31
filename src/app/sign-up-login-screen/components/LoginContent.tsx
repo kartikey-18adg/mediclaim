@@ -54,7 +54,7 @@ const roleConfig: Record<Role, { label: string; icon: React.ReactNode; descripti
 
 export default function LoginContent() {
   const router = useRouter();
-  const { user, loading, signUp, signIn } = useAuth();
+  const { user, loading, configured, signUp, signIn } = useAuth();
 
   const [role, setRole] = useState<Role>('patient');
   const [mode, setMode] = useState<AuthMode>('login');
@@ -71,10 +71,20 @@ export default function LoginContent() {
 
   // Redirect if already logged in
   useEffect(() => {
+    const authError = new URLSearchParams(window.location.search).get('error');
+    if (authError === 'confirmation_failed') toast.error('Confirmation link expired or already used. Please create a new account or request a fresh email.');
+    if (authError === 'missing_code') toast.error('Confirmation link is incomplete. Please use the latest email.');
+  }, []);
+
+  useEffect(() => {
     if (!loading && user) {
       router.replace('/');
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    if (!configured && !loading) toast.error('Authentication is unavailable. Check the Supabase connection.');
+  }, [configured, loading]);
 
   const onSubmit = async (data: LoginFormData & SignupFormData) => {
     setIsSubmitting(true);
