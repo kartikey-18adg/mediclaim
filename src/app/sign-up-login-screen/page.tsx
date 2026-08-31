@@ -1,6 +1,5 @@
-import React from 'react';
-import LoginContent from './components/LoginContent';
+import { redirect } from 'next/navigation';
 
 export default function SignUpLoginPage() {
-  return <LoginContent />;
+  redirect('/');
 }

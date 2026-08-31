@@ -124,7 +124,7 @@ export default function Sidebar() {
     try {
       await signOut();
       toast.success('Signed out successfully');
-      router.push('/sign-up-login-screen');
+      router.push('/');
     } catch (error) {
       toast.error('Failed to sign out');
     }

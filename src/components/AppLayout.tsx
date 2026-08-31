@@ -16,18 +16,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const { user, loading, configured } = useAuth();
 
   useEffect(() => {
-    if (loading || !configured) return;
-
-    const isAuthRoute = pathname === '/sign-up-login-screen';
-
-    if (!user && !isAuthRoute) {
-      router.replace('/sign-up-login-screen');
-    }
-
-    if (user && isAuthRoute) {
+    if (pathname === '/sign-up-login-screen') {
       router.replace('/');
     }
-  }, [pathname, router, user, loading, configured]);
+  }, [pathname, router]);
 
   // Show loading state while auth initializes
   if (loading) {
