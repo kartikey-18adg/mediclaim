@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import {
-  Eye, EyeOff, Copy, CheckCheck, ArrowRight, Shield,
-  Building2, User, FileText, ChevronRight, Stethoscope, Mail,
+  Eye, EyeOff, ArrowRight, Shield,
+  Building2, User, FileText, Stethoscope,
 } from 'lucide-react';
 import AppLogo from '@/components/ui/AppLogo';
 import { toast } from 'sonner';
@@ -31,19 +31,6 @@ interface SignupFormData {
   agreeTerms: boolean;
 }
 
-interface DemoCredential {
-  role: Role;
-  label: string;
-  email: string;
-  password: string;
-}
-
-const demoCredentials: DemoCredential[] = [
-  { role: 'patient', label: 'Patient', email: 'arjun.mehta@mediclaim.in', password: 'Patient@2026' },
-  { role: 'hospital', label: 'Hospital Admin', email: 'admin@apollomumbai.mediclaim.in', password: 'HospAdmin@2026' },
-  { role: 'insurer', label: 'Insurance Analyst', email: 'analyst@starhealth.mediclaim.in', password: 'Insurer@2026' },
-];
-
 const roleConfig: Record<Role, { label: string; icon: React.ReactNode; description: string; color: string }> = {
   patient: {
     label: 'Patient',
@@ -65,14 +52,6 @@ const roleConfig: Record<Role, { label: string; icon: React.ReactNode; descripti
   },
 };
 
-function CopiedIcon() {
-  return <CheckCheck size={12} className="text-positive" />;
-}
-
-function CopyIcon() {
-  return <Copy size={12} />;
-}
-
 export default function LoginContent() {
   const router = useRouter();
   const { user, loading, signUp, signIn } = useAuth();
@@ -81,13 +60,11 @@ export default function LoginContent() {
   const [mode, setMode] = useState<AuthMode>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
     reset,
   } = useForm<LoginFormData & SignupFormData>();
@@ -98,22 +75,6 @@ export default function LoginContent() {
       router.replace('/');
     }
   }, [user, loading, router]);
-
-  const handleCopy = (text: string, field: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedField(field);
-      setTimeout(() => setCopiedField(null), 2000);
-    });
-  };
-
-  const handleUseCreds = (cred: DemoCredential) => {
-    setValue('email', cred.email);
-    setValue('password', cred.password);
-    setRole(cred.role);
-    toast.success(`Demo credentials filled for ${cred.label}`);
-  };
-
-
 
   const onSubmit = async (data: LoginFormData & SignupFormData) => {
     setIsSubmitting(true);
@@ -513,44 +474,6 @@ export default function LoginContent() {
               )}
             </button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 border border-border rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 border-b border-border">
-              <Shield size={13} className="text-muted-foreground" />
-              <p className="text-xs font-semibold text-muted-foreground">Demo Credentials — Click to autofill</p>
-            </div>
-            <div className="divide-y divide-border">
-              {demoCredentials.map((cred) => (
-                <div
-                  key={`cred-${cred.role}`}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-foreground mb-0.5">{cred.label}</p>
-                    <p className="text-xs text-muted-foreground font-mono truncate">{cred.email}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(cred.email, `email-${cred.role}`)}
-                      className="btn-ghost p-1.5 rounded-lg"
-                      title="Copy email"
-                    >
-                      {copiedField === `email-${cred.role}` ? <CopiedIcon /> : <CopyIcon />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleUseCreds(cred)}
-                      className="flex items-center gap-1 text-xs font-semibold text-primary hover:bg-primary/10 px-2.5 py-1.5 rounded-lg transition-colors"
-                    >
-                      Use <ChevronRight size={11} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
           <p className="text-center text-xs text-muted-foreground mt-4">
             Protected by IRDAI-compliant encryption · ISO 27001 · DPDP Act 2023
