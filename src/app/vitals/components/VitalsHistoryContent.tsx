@@ -44,13 +44,13 @@ export default function VitalsHistoryContent() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        {vitals.map((vital) => (
-          <div key={vital.label} className="card p-4">
+        {vitals?.map((vital) => (
+          <div key={vital?.label} className="card p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-muted-foreground">{vital.label}</p>
-              <span className={`badge badge-muted ${vital.color}`}>{vital.status}</span>
+              <p className="text-xs text-muted-foreground">{vital?.label}</p>
+              <span className={`badge badge-muted ${vital?.color}`}>{vital?.status}</span>
             </div>
-            <p className="text-xl font-bold tabular-nums text-foreground">{vital.value}</p>
+            <p className="text-xl font-bold tabular-nums text-foreground">{vital?.value}</p>
           </div>
         ))}
       </div>
@@ -66,7 +66,7 @@ export default function VitalsHistoryContent() {
 
         <div className="h-[260px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={appData.vitalsHistory} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
+            <AreaChart data={appData?.vitalsHistory} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
               <defs>
                 <linearGradient id="heartFill" x1="0" x2="0" y1="0" y2="1">
                   <stop offset="5%" stopColor="var(--negative)" stopOpacity={0.35} />
@@ -99,15 +99,15 @@ export default function VitalsHistoryContent() {
           </div>
 
           <div className="space-y-3">
-            {appData.vitalsHistory.map((entry) => (
-              <div key={entry.date} className="flex items-center justify-between rounded-xl border border-border p-3">
+            {appData?.vitalsHistory?.map((entry) => (
+              <div key={entry?.date} className="flex items-center justify-between rounded-xl border border-border p-3">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{entry.date}</p>
-                  <p className="text-xs text-muted-foreground">HR {entry.heart} bpm · BP {entry.bp}</p>
+                  <p className="text-sm font-semibold text-foreground">{entry?.date}</p>
+                  <p className="text-xs text-muted-foreground">HR {entry?.heart} bpm · BP {entry?.bp}</p>
                 </div>
                 <span className="text-xs font-semibold text-positive inline-flex items-center gap-1">
                   <ArrowUpRight size={12} />
-                  {entry.spo2}% SpO₂
+                  {entry?.spo2}% SpO₂
                 </span>
               </div>
             ))}

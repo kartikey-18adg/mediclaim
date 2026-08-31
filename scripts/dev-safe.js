@@ -2,11 +2,11 @@ const { spawn, execSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const projectRoot = path.resolve(__dirname, '..');
-const dotNextPath = path.join(projectRoot, '.next');
+const projectRoot = path?.resolve(__dirname, '..');
+const dotNextPath = path?.join(projectRoot, '.next');
 
-if (fs.existsSync(dotNextPath)) {
-  fs.rmSync(dotNextPath, { recursive: true, force: true });
+if (fs?.existsSync(dotNextPath)) {
+  fs?.rmSync(dotNextPath, { recursive: true, force: true });
 }
 
 function killProcessOnPort(port) {
@@ -52,14 +52,14 @@ const child = isWin
       windowsHide: true,
     });
 
-child.on('exit', (code, signal) => {
+child?.on('exit', (code, signal) => {
   if (signal) {
     process.exit(1);
   }
   process.exit(code ?? 0);
 });
 
-child.on('error', (error) => {
+child?.on('error', (error) => {
   console.error('Failed to start dev server:', error);
   process.exit(1);
 });

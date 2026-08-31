@@ -3,10 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import {
-  Eye, EyeOff, Copy, CheckCheck, ArrowRight, Shield,
-  Building2, User, FileText, ChevronRight, Stethoscope, Mail,
-} from 'lucide-react';
+import { Eye, EyeOff, Copy, CheckCheck, ArrowRight, Shield, Building2, User, FileText, ChevronRight, Stethoscope,  } from 'lucide-react';
 import AppLogo from '@/components/ui/AppLogo';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
