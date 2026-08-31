@@ -1,8 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-
-const globalAppDataClient = globalThis as typeof globalThis & {
-  __mediclaimAppDataSupabaseClient?: SupabaseClient;
-};
+import { getSupabaseClient } from './supabase';
 
 export type VitalStatus = 'normal' | 'warning' | 'critical';
 
@@ -224,30 +220,6 @@ const defaultData: AppData = {
     },
   ],
 };
-
-function isDummySupabaseValue(value?: string) {
-  if (!value) return true;
-  return /dummy|your-|replace/i.test(value);
-}
-
-function getSupabaseClient(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key || isDummySupabaseValue(url) || isDummySupabaseValue(key)) {
-    return null;
-  }
-
-  if (!globalAppDataClient.__mediclaimAppDataSupabaseClient) {
-    try {
-      globalAppDataClient.__mediclaimAppDataSupabaseClient = createClient(url, key);
-    } catch {
-      return null;
-    }
-  }
-
-  return globalAppDataClient.__mediclaimAppDataSupabaseClient;
-}
 
 function mergeAppData(partial?: Partial<AppData> | null): AppData {
   return {

@@ -3,251 +3,9 @@
 import React, { useState, useMemo } from 'react';
 import { Search, MapPin, Star, CheckCircle2, Clock, Bed, ShieldCheck, TrendingUp, IndianRupee, ChevronDown, X, ArrowUpDown, Wifi, Building2, AlertCircle, Stethoscope, Phone, ExternalLink, Heart, Filter,  } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Hospital {
-  id: string;
-  name: string;
-  location: string;
-  city: string;
-  distance: number;
-  rating: number;
-  reviewCount: number;
-  specialties: string[];
-  primarySpecialty: string;
-  bedsAvailable: number;
-  totalBeds: number;
-  claimAcceptanceRate: number;
-  estimatedCostMin: number;
-  estimatedCostMax: number;
-  outOfPocketMin: number;
-  outOfPocketMax: number;
-  accreditations: ('NABH' | 'JCI' | 'NABL')[];
-  inNetwork: boolean;
-  emergencyAvailable: boolean;
-  waitTime: string;
-  matchScore: number;
-  insurance: string[];
-  type: 'Multi-Specialty' | 'Super-Specialty' | 'Specialty' | 'Government';
-  phone: string;
-}
-
-const mockHospitals: Hospital[] = [
-  {
-    id: 'hosp-apollo-navi',
-    name: 'Apollo Hospitals',
-    location: 'Belapur, Navi Mumbai',
-    city: 'Navi Mumbai',
-    distance: 3.2,
-    rating: 4.7,
-    reviewCount: 3842,
-    specialties: ['Cardiology', 'Orthopedics', 'Neurology', 'Oncology', 'Nephrology'],
-    primarySpecialty: 'Cardiology',
-    bedsAvailable: 24,
-    totalBeds: 320,
-    claimAcceptanceRate: 96,
-    estimatedCostMin: 42000,
-    estimatedCostMax: 68000,
-    outOfPocketMin: 1680,
-    outOfPocketMax: 2720,
-    accreditations: ['NABH', 'JCI', 'NABL'],
-    inNetwork: true,
-    emergencyAvailable: true,
-    waitTime: '15–20 min',
-    matchScore: 97,
-    insurance: ['Star Health', 'HDFC ERGO', 'Bajaj Allianz', 'New India'],
-    type: 'Multi-Specialty',
-    phone: '+91 22 2756 0000',
-  },
-  {
-    id: 'hosp-fortis-pune',
-    name: 'Fortis Hiranandani Hospital',
-    location: 'Vashi, Navi Mumbai',
-    city: 'Navi Mumbai',
-    distance: 5.8,
-    rating: 4.5,
-    reviewCount: 2194,
-    specialties: ['Cardiology', 'Pulmonology', 'Endocrinology', 'Gastroenterology'],
-    primarySpecialty: 'Pulmonology',
-    bedsAvailable: 8,
-    totalBeds: 180,
-    claimAcceptanceRate: 92,
-    estimatedCostMin: 38000,
-    estimatedCostMax: 55000,
-    outOfPocketMin: 3040,
-    outOfPocketMax: 4400,
-    accreditations: ['NABH', 'NABL'],
-    inNetwork: true,
-    emergencyAvailable: true,
-    waitTime: '25–35 min',
-    matchScore: 89,
-    insurance: ['Star Health', 'HDFC ERGO', 'Religare'],
-    type: 'Multi-Specialty',
-    phone: '+91 22 2518 2222',
-  },
-  {
-    id: 'hosp-kokilaben',
-    name: 'Kokilaben Dhirubhai Ambani Hospital',
-    location: 'Andheri West, Mumbai',
-    city: 'Mumbai',
-    distance: 12.4,
-    rating: 4.8,
-    reviewCount: 5621,
-    specialties: ['Cardiology', 'Neurology', 'Oncology', 'Transplant', 'Robotics Surgery'],
-    primarySpecialty: 'Cardiology',
-    bedsAvailable: 42,
-    totalBeds: 750,
-    claimAcceptanceRate: 98,
-    estimatedCostMin: 65000,
-    estimatedCostMax: 120000,
-    outOfPocketMin: 1300,
-    outOfPocketMax: 2400,
-    accreditations: ['NABH', 'JCI'],
-    inNetwork: true,
-    emergencyAvailable: true,
-    waitTime: '10–15 min',
-    matchScore: 94,
-    insurance: ['Star Health', 'HDFC ERGO', 'Bajaj Allianz', 'ICICI Lombard', 'New India'],
-    type: 'Super-Specialty',
-    phone: '+91 22 4269 6969',
-  },
-  {
-    id: 'hosp-wockhardt-mira',
-    name: 'Wockhardt Hospital',
-    location: 'Mira Road, Thane',
-    city: 'Thane',
-    distance: 18.7,
-    rating: 4.2,
-    reviewCount: 1087,
-    specialties: ['Cardiology', 'Orthopedics', 'Gynecology', 'Pediatrics'],
-    primarySpecialty: 'Orthopedics',
-    bedsAvailable: 3,
-    totalBeds: 120,
-    claimAcceptanceRate: 84,
-    estimatedCostMin: 28000,
-    estimatedCostMax: 45000,
-    outOfPocketMin: 4480,
-    outOfPocketMax: 7200,
-    accreditations: ['NABH'],
-    inNetwork: false,
-    emergencyAvailable: true,
-    waitTime: '40–60 min',
-    matchScore: 71,
-    insurance: ['Bajaj Allianz', 'New India', 'Oriental'],
-    type: 'Multi-Specialty',
-    phone: '+91 22 2811 0000',
-  },
-  {
-    id: 'hosp-nanavati',
-    name: 'Nanavati Max Super Speciality',
-    location: 'Vile Parle West, Mumbai',
-    city: 'Mumbai',
-    distance: 9.1,
-    rating: 4.4,
-    reviewCount: 2876,
-    specialties: ['Cardiology', 'Endocrinology', 'Neurology', 'Urology', 'Bariatric Surgery'],
-    primarySpecialty: 'Endocrinology',
-    bedsAvailable: 16,
-    totalBeds: 350,
-    claimAcceptanceRate: 91,
-    estimatedCostMin: 48000,
-    estimatedCostMax: 75000,
-    outOfPocketMin: 4320,
-    outOfPocketMax: 6750,
-    accreditations: ['NABH', 'JCI'],
-    inNetwork: true,
-    emergencyAvailable: true,
-    waitTime: '20–30 min',
-    matchScore: 85,
-    insurance: ['Star Health', 'HDFC ERGO', 'Bajaj Allianz', 'Religare'],
-    type: 'Super-Specialty',
-    phone: '+91 22 2626 7500',
-  },
-  {
-    id: 'hosp-sir-hh',
-    name: 'Sir H.N. Reliance Foundation Hospital',
-    location: 'Girgaon, Mumbai',
-    city: 'Mumbai',
-    distance: 14.2,
-    rating: 4.6,
-    reviewCount: 1934,
-    specialties: ['Cardiology', 'Oncology', 'Nephrology', 'Transplant', 'Pulmonology'],
-    primarySpecialty: 'Cardiology',
-    bedsAvailable: 31,
-    totalBeds: 345,
-    claimAcceptanceRate: 94,
-    estimatedCostMin: 52000,
-    estimatedCostMax: 88000,
-    outOfPocketMin: 3120,
-    outOfPocketMax: 5280,
-    accreditations: ['NABH', 'NABL'],
-    inNetwork: true,
-    emergencyAvailable: true,
-    waitTime: '20–25 min',
-    matchScore: 88,
-    insurance: ['Star Health', 'ICICI Lombard', 'Bajaj Allianz'],
-    type: 'Super-Specialty',
-    phone: '+91 22 6175 0000',
-  },
-  {
-    id: 'hosp-mgm-vashi',
-    name: 'MGM Healthcare',
-    location: 'Sector 3, Vashi',
-    city: 'Navi Mumbai',
-    distance: 4.5,
-    rating: 4.1,
-    reviewCount: 743,
-    specialties: ['General Medicine', 'Cardiology', 'Orthopedics', 'ENT'],
-    primarySpecialty: 'General Medicine',
-    bedsAvailable: 12,
-    totalBeds: 90,
-    claimAcceptanceRate: 78,
-    estimatedCostMin: 18000,
-    estimatedCostMax: 32000,
-    outOfPocketMin: 3960,
-    outOfPocketMax: 7040,
-    accreditations: ['NABH'],
-    inNetwork: false,
-    emergencyAvailable: false,
-    waitTime: '30–45 min',
-    matchScore: 62,
-    insurance: ['New India', 'Oriental'],
-    type: 'Specialty',
-    phone: '+91 22 2778 6666',
-  },
-  {
-    id: 'hosp-lilavati',
-    name: 'Lilavati Hospital & Research Centre',
-    location: 'Bandra West, Mumbai',
-    city: 'Mumbai',
-    distance: 11.3,
-    rating: 4.5,
-    reviewCount: 3201,
-    specialties: ['Cardiology', 'Neurology', 'Oncology', 'Orthopedics', 'Gastroenterology'],
-    primarySpecialty: 'Neurology',
-    bedsAvailable: 19,
-    totalBeds: 323,
-    claimAcceptanceRate: 93,
-    estimatedCostMin: 44000,
-    estimatedCostMax: 72000,
-    outOfPocketMin: 3080,
-    outOfPocketMax: 5040,
-    accreditations: ['NABH', 'NABL'],
-    inNetwork: true,
-    emergencyAvailable: true,
-    waitTime: '20–30 min',
-    matchScore: 82,
-    insurance: ['Star Health', 'HDFC ERGO', 'Bajaj Allianz', 'New India', 'Religare'],
-    type: 'Multi-Specialty',
-    phone: '+91 22 2675 1000',
-  },
-];
-
-const specialtyOptions = [
-  'Cardiology', 'Orthopedics', 'Neurology', 'Oncology',
-  'Pulmonology', 'Endocrinology', 'Nephrology', 'Gastroenterology',
-];
-
-const insuranceOptions = ['Star Health', 'HDFC ERGO', 'Bajaj Allianz', 'ICICI Lombard', 'New India', 'Religare'];
+import { fetchHospitals, type Hospital } from '@/lib/api';
+import { useSupabaseQuery } from '@/lib/use-supabase-query';
+import { ErrorState, LoadingState } from '@/components/DataStates';
 
 type SortOption = 'match' | 'distance' | 'rating' | 'claim-rate' | 'cost';
 
@@ -466,8 +224,21 @@ export default function HospitalRecommendationContent() {
   const [compareList, setCompareList] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
 
+  const { data, loading, error, refetch } = useSupabaseQuery(fetchHospitals);
+  const hospitals = useMemo(() => data ?? [], [data]);
+
+  const specialtyOptions = useMemo(
+    () => Array.from(new Set(hospitals.flatMap((h) => h.specialties))).sort(),
+    [hospitals]
+  );
+
+  const insuranceOptions = useMemo(
+    () => Array.from(new Set(hospitals.flatMap((h) => h.insurance))).sort(),
+    [hospitals]
+  );
+
   const filteredHospitals = useMemo(() => {
-    let results = mockHospitals.filter((h) => {
+    let results = hospitals.filter((h) => {
       if (inNetworkOnly && !h.inNetwork) return false;
       if (nabh && !h.accreditations.includes('NABH')) return false;
       if (h.distance > distanceRadius) return false;
@@ -492,7 +263,7 @@ export default function HospitalRecommendationContent() {
     });
 
     return results;
-  }, [inNetworkOnly, nabh, distanceRadius, minClaimRate, selectedSpecialty, selectedInsurance, sortBy]);
+  }, [hospitals, inNetworkOnly, nabh, distanceRadius, minClaimRate, selectedSpecialty, selectedInsurance, sortBy]);
 
   const handleBook = (h: Hospital) => {
     toast.success(`Appointment request sent to ${h.name}`);
@@ -752,7 +523,11 @@ export default function HospitalRecommendationContent() {
       )}
 
       {/* Hospital Cards Grid */}
-      {filteredHospitals.length > 0 ? (
+      {loading ? (
+        <LoadingState label="Loading hospitals from Supabase…" rows={4} />
+      ) : error ? (
+        <ErrorState message={error} onRetry={refetch} />
+      ) : filteredHospitals.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
           {filteredHospitals.map((hospital) => (
             <HospitalCard

@@ -1,132 +1,22 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FileText, ShieldCheck, Calculator, Send, CheckCircle2, ChevronRight, ChevronLeft, AlertCircle, Info, Loader2, Edit3, Check, X, ClipboardList, Receipt, FlaskConical, Pill, Building2, User, Stethoscope, BadgeCheck, TrendingDown, Wallet, Download, Eye, Star, ChevronDown, ChevronUp, Sparkles,  } from 'lucide-react';
+
+import {
+  fetchClaimExtractedFields,
+  fetchClaimSourceDocuments,
+  fetchInsurancePlans,
+  type ClaimExtractedField as ExtractedField,
+  type ClaimSourceDocument as SourceDocument,
+  type InsurancePlan,
+} from '@/lib/api';
+import { useSupabaseQuery } from '@/lib/use-supabase-query';
+import { ErrorState, LoadingState } from '@/components/DataStates';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface ExtractedField {
-  key: string;
-  label: string;
-  value: string;
-  editable: boolean;
-  category: 'patient' | 'treatment' | 'financial' | 'hospital';
-}
-
-interface SourceDocument {
-  id: string;
-  name: string;
-  type: 'discharge_summary' | 'bill' | 'lab_report' | 'prescription';
-  date: string;
-  confidence: number;
-}
-
-interface InsurancePlan {
-  id: string;
-  planName: string;
-  insurer: string;
-  policyNumber: string;
-  planType: string;
-  sumInsured: number;
-  coveragePercent: number;
-  coveredAmount: number;
-  deductible: number;
-  copay: number;
-  outOfPocket: number;
-  claimApprovalRate: number;
-  networkHospital: boolean;
-  color: string;
-  accentColor: string;
-  ringColor: string;
-  isBest?: boolean;
-}
-
 type Step = 1 | 2 | 3 | 4;
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const sourceDocuments: SourceDocument[] = [
-  { id: 'doc-002', name: 'Apollo_Discharge_Summary.pdf', type: 'discharge_summary', date: '10 Jul 2025', confidence: 97 },
-  { id: 'doc-003', name: 'Hospital_Bill_Apollo_July.pdf', type: 'bill', date: '10 Jul 2025', confidence: 99 },
-  { id: 'doc-001', name: 'CBC_BloodTest_July2025.pdf', type: 'lab_report', date: '18 Jul 2025', confidence: 94 },
-];
-
-const initialExtractedFields: ExtractedField[] = [
-  { key: 'patient_name', label: 'Patient Name', value: 'Arjun Mehta', editable: true, category: 'patient' },
-  { key: 'dob', label: 'Date of Birth', value: '14 Mar 1990', editable: true, category: 'patient' },
-  { key: 'policy_holder', label: 'Policy Holder', value: 'Arjun Mehta', editable: true, category: 'patient' },
-  { key: 'hospital_name', label: 'Hospital Name', value: 'Apollo Hospitals, Mumbai', editable: true, category: 'hospital' },
-  { key: 'hospital_address', label: 'Hospital Address', value: 'Parsik Hill Road, Belapur, Navi Mumbai', editable: true, category: 'hospital' },
-  { key: 'admission_date', label: 'Admission Date', value: '05 Jul 2025', editable: true, category: 'treatment' },
-  { key: 'discharge_date', label: 'Discharge Date', value: '10 Jul 2025', editable: true, category: 'treatment' },
-  { key: 'diagnosis', label: 'Primary Diagnosis', value: 'Acute Appendicitis (K35.80)', editable: true, category: 'treatment' },
-  { key: 'procedure', label: 'Procedure Performed', value: 'Laparoscopic Appendectomy', editable: true, category: 'treatment' },
-  { key: 'attending_doctor', label: 'Attending Surgeon', value: 'Dr. Rajesh Nair (MCI: 45821)', editable: true, category: 'treatment' },
-  { key: 'room_type', label: 'Room Type', value: 'Private Room', editable: true, category: 'treatment' },
-  { key: 'total_bill', label: 'Total Bill Amount', value: '₹58,400', editable: false, category: 'financial' },
-  { key: 'surgery_charges', label: 'Surgery Charges', value: '₹32,000', editable: false, category: 'financial' },
-  { key: 'room_charges', label: 'Room & Nursing Charges', value: '₹12,500', editable: false, category: 'financial' },
-  { key: 'medicine_charges', label: 'Medicine & Consumables', value: '₹8,900', editable: false, category: 'financial' },
-  { key: 'diagnostic_charges', label: 'Diagnostic Charges', value: '₹5,000', editable: false, category: 'financial' },
-];
-
-const insurancePlans: InsurancePlan[] = [
-  {
-    id: 'plan-star',
-    planName: 'Star Health Comprehensive',
-    insurer: 'Star Health & Allied Insurance',
-    policyNumber: 'P/211221/01/2025/004821',
-    planType: 'Individual',
-    sumInsured: 1000000,
-    coveragePercent: 90,
-    coveredAmount: 52560,
-    deductible: 2920,
-    copay: 0,
-    outOfPocket: 5840,
-    claimApprovalRate: 94,
-    networkHospital: true,
-    color: 'from-teal-50 to-cyan-50',
-    accentColor: 'text-teal-600',
-    ringColor: 'ring-teal-400/50',
-    isBest: true,
-  },
-  {
-    id: 'plan-hdfc',
-    planName: 'HDFC ERGO Optima Restore',
-    insurer: 'HDFC ERGO General Insurance',
-    policyNumber: 'HE-2025-IND-00934',
-    planType: 'Family Floater',
-    sumInsured: 500000,
-    coveragePercent: 85,
-    coveredAmount: 49640,
-    deductible: 2920,
-    copay: 2482,
-    outOfPocket: 11162,
-    claimApprovalRate: 91,
-    networkHospital: true,
-    color: 'from-blue-50 to-indigo-50',
-    accentColor: 'text-blue-600',
-    ringColor: 'ring-blue-400/50',
-  },
-  {
-    id: 'plan-niva',
-    planName: 'Niva Bupa ReAssure 2.0',
-    insurer: 'Niva Bupa Health Insurance',
-    policyNumber: 'NB-RE2-2025-78341',
-    planType: 'Individual',
-    sumInsured: 750000,
-    coveragePercent: 88,
-    coveredAmount: 51392,
-    deductible: 2920,
-    copay: 2570,
-    outOfPocket: 9498,
-    claimApprovalRate: 89,
-    networkHospital: true,
-    color: 'from-violet-50 to-purple-50',
-    accentColor: 'text-violet-600',
-    ringColor: 'ring-violet-400/50',
-  },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -159,9 +49,11 @@ const steps = [
 
 function StepReviewData({
   fields,
+  sourceDocuments,
   onFieldChange,
 }: {
   fields: ExtractedField[];
+  sourceDocuments: SourceDocument[];
   onFieldChange: (key: string, value: string) => void;
 }) {
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -677,12 +569,31 @@ function StepSubmitClaim({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+async function fetchClaimData() {
+  const [sourceDocuments, extractedFields, plans] = await Promise.all([
+    fetchClaimSourceDocuments(),
+    fetchClaimExtractedFields(),
+    fetchInsurancePlans(),
+  ]);
+
+  return { sourceDocuments, extractedFields, plans };
+}
+
 export default function ClaimsWorkflowContent() {
   const [currentStep, setCurrentStep] = useState<Step>(1);
-  const [fields, setFields] = useState<ExtractedField[]>(initialExtractedFields);
+  const [fields, setFields] = useState<ExtractedField[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const { data, loading, error, refetch } = useSupabaseQuery(fetchClaimData);
+
+  const sourceDocuments = data?.sourceDocuments ?? [];
+  const insurancePlans = data?.plans ?? [];
+
+  useEffect(() => {
+    if (data) setFields(data.extractedFields);
+  }, [data]);
 
   const selectedPlan = insurancePlans.find((p) => p.id === selectedPlanId) ?? null;
 
@@ -706,7 +617,8 @@ export default function ClaimsWorkflowContent() {
   };
 
   const canProceed = () => {
-    if (currentStep === 1) return true;
+    if (loading || error) return false;
+    if (currentStep === 1) return fields.length > 0;
     if (currentStep === 2) return selectedPlanId !== null;
     if (currentStep === 3) return selectedPlan !== null;
     return false;
@@ -770,20 +682,26 @@ export default function ClaimsWorkflowContent() {
 
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-        {currentStep === 1 && (
-          <StepReviewData fields={fields} onFieldChange={handleFieldChange} />
+        {loading && <LoadingState label="Loading claim data from Supabase…" rows={5} />}
+        {!loading && error && <ErrorState message={error} onRetry={refetch} />}
+        {!loading && !error && currentStep === 1 && (
+          <StepReviewData
+            fields={fields}
+            sourceDocuments={sourceDocuments}
+            onFieldChange={handleFieldChange}
+          />
         )}
-        {currentStep === 2 && (
+        {!loading && !error && currentStep === 2 && (
           <StepSelectPlan
             plans={insurancePlans}
             selectedPlanId={selectedPlanId}
             onSelect={setSelectedPlanId}
           />
         )}
-        {currentStep === 3 && selectedPlan && (
+        {!loading && !error && currentStep === 3 && selectedPlan && (
           <StepConfirmCoverage plan={selectedPlan} fields={fields} />
         )}
-        {currentStep === 4 && selectedPlan && (
+        {!loading && !error && currentStep === 4 && selectedPlan && (
           <StepSubmitClaim
             plan={selectedPlan}
             fields={fields}

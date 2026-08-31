@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Calculator,
   Upload,
@@ -20,6 +20,9 @@ import {
   Stethoscope,
   RefreshCw,
 } from 'lucide-react';
+import { fetchInsurancePlans, type InsurancePlan } from '@/lib/api';
+import { useSupabaseQuery } from '@/lib/use-supabase-query';
+import { ErrorState, LoadingState } from '@/components/DataStates';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -103,69 +106,19 @@ const defaultInput: TreatmentInput = {
   emergencyAdmission: false,
 };
 
-// ─── Mock calculation engine ──────────────────────────────────────────────────
+// ─── Coverage engine (runs over plans fetched from Supabase) ─────────────────
 
-function calculateCoverage(input: TreatmentInput): PlanResult[] {
+function calculateCoverage(input: TreatmentInput, plans: InsurancePlan[]): PlanResult[] {
   const cost = parseFloat(input.estimatedCost.replace(/,/g, '')) || 0;
   const isNetwork = input.hospitalType !== 'non_network';
   const isPreExisting = input.preExisting;
-  const isEmergency = input.emergencyAdmission;
-
-  const plans: Omit<PlanResult, 'coveredAmount' | 'deductible' | 'copay' | 'outOfPocket'>[] = [
-    {
-      planName: 'Star Health Comprehensive',
-      insurer: 'Star Health',
-      planType: 'Individual',
-      sumInsured: 1000000,
-      coveragePercent: isNetwork ? (isPreExisting ? 70 : 90) : 60,
-      claimApprovalRate: 94,
-      networkHospital: isNetwork,
-      notes: isPreExisting
-        ? ['Pre-existing conditions covered after 2-yr waiting period', 'Cashless at 14,000+ hospitals']
-        : ['Cashless at 14,000+ hospitals', 'No room rent sub-limit'],
-      color: 'from-teal-50 to-cyan-50',
-      accentColor: 'text-teal-600',
-    },
-    {
-      planName: 'HDFC ERGO Optima Restore',
-      insurer: 'HDFC ERGO',
-      planType: 'Family Floater',
-      sumInsured: 500000,
-      coveragePercent: isNetwork ? (isPreExisting ? 65 : 85) : 55,
-      claimApprovalRate: 91,
-      networkHospital: isNetwork,
-      notes: ['Sum insured restored after each claim', isEmergency ? 'Emergency cover included' : 'Planned treatment covered'],
-      color: 'from-blue-50 to-indigo-50',
-      accentColor: 'text-blue-600',
-    },
-    {
-      planName: 'Niva Bupa ReAssure 2.0',
-      insurer: 'Niva Bupa',
-      planType: 'Individual',
-      sumInsured: 750000,
-      coveragePercent: isNetwork ? (isPreExisting ? 60 : 88) : 50,
-      claimApprovalRate: 89,
-      networkHospital: isNetwork,
-      notes: ['Lock the Clock benefit – premium stays same', 'Direct claim settlement'],
-      color: 'from-violet-50 to-purple-50',
-      accentColor: 'text-violet-600',
-    },
-    {
-      planName: 'Care Supreme',
-      insurer: 'Care Health',
-      planType: 'Individual',
-      sumInsured: 600000,
-      coveragePercent: isNetwork ? (isPreExisting ? 68 : 87) : 58,
-      claimApprovalRate: 88,
-      networkHospital: isNetwork,
-      notes: ['Annual health check-up included', 'Unlimited restoration of sum insured'],
-      color: 'from-emerald-50 to-green-50',
-      accentColor: 'text-emerald-600',
-    },
-  ];
 
   return plans.map((plan) => {
-    const rawCovered = cost * (plan.coveragePercent / 100);
+    const coveragePercent = Math.max(
+      0,
+      plan.coveragePercent - (isNetwork ? (isPreExisting ? 20 : 0) : 30)
+    );
+    const rawCovered = cost * (coveragePercent / 100);
     const cappedCovered = Math.min(rawCovered, plan.sumInsured);
     const deductible = cost > 50000 ? Math.min(cost * 0.05, 5000) : 0;
     const copayRate = !isNetwork ? 0.2 : isPreExisting ? 0.1 : 0;
@@ -173,7 +126,16 @@ function calculateCoverage(input: TreatmentInput): PlanResult[] {
     const outOfPocket = cost - cappedCovered + deductible + copay;
 
     return {
-      ...plan,
+      planName: plan.planName,
+      insurer: plan.insurer,
+      planType: plan.planType,
+      sumInsured: plan.sumInsured,
+      coveragePercent,
+      claimApprovalRate: plan.claimApprovalRate,
+      networkHospital: isNetwork && plan.networkHospital,
+      notes: input.emergencyAdmission ? [...plan.notes, 'Emergency admission cover applied'] : plan.notes,
+      color: plan.color,
+      accentColor: plan.accentColor,
       coveredAmount: Math.round(cappedCovered),
       deductible: Math.round(deductible),
       copay: Math.round(copay),
@@ -332,6 +294,8 @@ export default function CoverageCalculatorContent() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  const { data: plans, loading: plansLoading, error: plansError, refetch } = useSupabaseQuery(fetchInsurancePlans);
+
   const handleFormChange = useCallback(
     (field: keyof TreatmentInput, value: string | boolean) => {
       setForm((prev) => ({ ...prev, [field]: value }));
@@ -341,15 +305,14 @@ export default function CoverageCalculatorContent() {
   );
 
   const handleCalculate = useCallback(async () => {
-    if (!form.treatmentType || !form.estimatedCost) return;
+    if (!form.treatmentType || !form.estimatedCost || !plans) return;
     setCalculating(true);
     setResults(null);
-    await new Promise((r) => setTimeout(r, 1200));
-    const res = calculateCoverage(form);
+    const res = calculateCoverage(form, plans);
     res.sort((a, b) => a.outOfPocket - b.outOfPocket);
     setResults(res);
     setCalculating(false);
-  }, [form]);
+  }, [form, plans]);
 
   const handleReset = useCallback(() => {
     setForm(defaultInput);
@@ -642,7 +605,7 @@ export default function CoverageCalculatorContent() {
           <div className="mt-5 flex items-center gap-3">
             <button
               onClick={handleCalculate}
-              disabled={!isFormValid || calculating}
+              disabled={!isFormValid || calculating || plansLoading || Boolean(plansError) || !plans?.length}
               className="btn-primary gap-2"
             >
               {calculating ? (
@@ -658,6 +621,9 @@ export default function CoverageCalculatorContent() {
             )}
           </div>
         </div>
+
+        {plansLoading && <LoadingState label="Loading insurance plans from Supabase…" rows={3} />}
+        {!plansLoading && plansError && <ErrorState message={plansError} onRetry={refetch} />}
 
         {/* Results */}
         {results && (

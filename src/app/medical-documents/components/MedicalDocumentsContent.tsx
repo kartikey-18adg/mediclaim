@@ -1,31 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Upload, FileText, FlaskConical, Receipt, ClipboardList, Pill, X, CheckCircle2, Clock, AlertCircle, Eye, Download, Trash2, CloudUpload, Search, ChevronDown, RefreshCw, FileImage, FileScan, Loader2, ZoomIn,  } from 'lucide-react';
 
+import { fetchMedicalDocuments, type MedicalDocument, type ProcessingStatus } from '@/lib/api';
+import { ErrorState, LoadingState } from '@/components/DataStates';
+
 type DocCategory = 'all' | 'lab_report' | 'prescription' | 'bill' | 'discharge_summary';
-type ProcessingStatus = 'queued' | 'processing' | 'completed' | 'failed';
-
-interface ExtractedField {
-  label: string;
-  value: string;
-}
-
-interface MedicalDocument {
-  id: string;
-  name: string;
-  category: DocCategory;
-  size: string;
-  uploadedAt: string;
-  status: ProcessingStatus;
-  progress: number;
-  fileType: 'pdf' | 'image';
-  previewUrl?: string;
-  extractedFields?: ExtractedField[];
-  errorMessage?: string;
-  patientName?: string;
-  docDate?: string;
-}
 
 const categoryConfig: Record<Exclude<DocCategory, 'all'>, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
   lab_report: {
@@ -81,114 +62,6 @@ const statusConfig: Record<ProcessingStatus, { label: string; icon: React.ReactN
   },
 };
 
-const mockDocuments: MedicalDocument[] = [
-  {
-    id: 'doc-001',
-    name: 'CBC_BloodTest_July2025.pdf',
-    category: 'lab_report',
-    size: '1.2 MB',
-    uploadedAt: '2025-07-18T09:30:00',
-    status: 'completed',
-    progress: 100,
-    fileType: 'pdf',
-    patientName: 'Arjun Mehta',
-    docDate: '18 Jul 2025',
-    extractedFields: [
-      { label: 'Test Name', value: 'Complete Blood Count (CBC)' },
-      { label: 'Haemoglobin', value: '13.8 g/dL (Normal)' },
-      { label: 'WBC Count', value: '7,200 /µL (Normal)' },
-      { label: 'Platelet Count', value: '2.1 Lakh /µL (Normal)' },
-      { label: 'Lab Name', value: 'SRL Diagnostics, Mumbai' },
-      { label: 'Referred By', value: 'Dr. Priya Sharma' },
-    ],
-  },
-  {
-    id: 'doc-002',
-    name: 'Apollo_Discharge_Summary.pdf',
-    category: 'discharge_summary',
-    size: '3.4 MB',
-    uploadedAt: '2025-07-10T14:15:00',
-    status: 'completed',
-    progress: 100,
-    fileType: 'pdf',
-    patientName: 'Arjun Mehta',
-    docDate: '10 Jul 2025',
-    extractedFields: [
-      { label: 'Hospital', value: 'Apollo Hospitals, Mumbai' },
-      { label: 'Admission Date', value: '05 Jul 2025' },
-      { label: 'Discharge Date', value: '10 Jul 2025' },
-      { label: 'Diagnosis', value: 'Acute Appendicitis' },
-      { label: 'Procedure', value: 'Laparoscopic Appendectomy' },
-      { label: 'Attending Surgeon', value: 'Dr. Rajesh Nair' },
-    ],
-  },
-  {
-    id: 'doc-003',
-    name: 'Hospital_Bill_Apollo_July.pdf',
-    category: 'bill',
-    size: '0.8 MB',
-    uploadedAt: '2025-07-10T16:00:00',
-    status: 'completed',
-    progress: 100,
-    fileType: 'pdf',
-    patientName: 'Arjun Mehta',
-    docDate: '10 Jul 2025',
-    extractedFields: [
-      { label: 'Hospital', value: 'Apollo Hospitals, Mumbai' },
-      { label: 'Bill No.', value: 'APL-2025-07-8821' },
-      { label: 'Total Amount', value: '₹58,400' },
-      { label: 'Insurance Covered', value: '₹52,560 (90%)' },
-      { label: 'Patient Payable', value: '₹5,840' },
-      { label: 'GST', value: '₹1,050' },
-    ],
-  },
-  {
-    id: 'doc-004',
-    name: 'Prescription_PostOp_Nair.jpg',
-    category: 'prescription',
-    size: '0.5 MB',
-    uploadedAt: '2025-07-11T10:00:00',
-    status: 'processing',
-    progress: 62,
-    fileType: 'image',
-    patientName: 'Arjun Mehta',
-    docDate: '11 Jul 2025',
-  },
-  {
-    id: 'doc-005',
-    name: 'Lipid_Panel_June2025.pdf',
-    category: 'lab_report',
-    size: '0.9 MB',
-    uploadedAt: '2025-06-22T08:45:00',
-    status: 'completed',
-    progress: 100,
-    fileType: 'pdf',
-    patientName: 'Arjun Mehta',
-    docDate: '22 Jun 2025',
-    extractedFields: [
-      { label: 'Test Name', value: 'Lipid Profile Panel' },
-      { label: 'Total Cholesterol', value: '198 mg/dL (Normal)' },
-      { label: 'LDL', value: '122 mg/dL (Borderline)' },
-      { label: 'HDL', value: '48 mg/dL (Normal)' },
-      { label: 'Triglycerides', value: '142 mg/dL (Normal)' },
-      { label: 'Lab Name', value: 'Metropolis Healthcare, Pune' },
-    ],
-  },
-  {
-    id: 'doc-006',
-    name: 'Scan_Report_Abdomen.pdf',
-    category: 'lab_report',
-    size: '4.1 MB',
-    uploadedAt: '2025-07-04T11:30:00',
-    status: 'failed',
-    progress: 0,
-    fileType: 'pdf',
-    patientName: 'Arjun Mehta',
-    docDate: '04 Jul 2025',
-    errorMessage: 'File is password-protected. Please upload an unlocked version.',
-  },
-];
-
 const categoryFilters: { value: DocCategory; label: string }[] = [
   { value: 'all', label: 'All Documents' },
   { value: 'lab_report', label: 'Lab Reports' },
@@ -208,7 +81,10 @@ function formatTime(iso: string) {
 }
 
 export default function MedicalDocumentsContent() {
-  const [documents, setDocuments] = useState<MedicalDocument[]>(mockDocuments);
+  const [documents, setDocuments] = useState<MedicalDocument[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [activeCategory, setActiveCategory] = useState<DocCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -216,6 +92,30 @@ export default function MedicalDocumentsContent() {
   const [uploadCategory, setUploadCategory] = useState<Exclude<DocCategory, 'all'>>('lab_report');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setLoading(true);
+    setError(null);
+
+    fetchMedicalDocuments()
+      .then((docs) => {
+        if (!cancelled) setDocuments(docs);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setDocuments([]);
+        setError(err instanceof Error ? err.message : 'Could not load documents.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadToken]);
 
   const filtered = documents.filter((doc) => {
     const matchCat = activeCategory === 'all' || doc.category === activeCategory;
@@ -473,7 +373,11 @@ export default function MedicalDocumentsContent() {
           </div>
 
           {/* Document List */}
-          {filtered.length === 0 ? (
+          {loading ? (
+            <LoadingState label="Loading documents from Supabase…" rows={4} />
+          ) : error ? (
+            <ErrorState message={error} onRetry={() => setReloadToken((n) => n + 1)} />
+          ) : filtered.length === 0 ? (
             <div className="card p-12 text-center">
               <FileScan size={36} className="text-muted-foreground mx-auto mb-3" />
               <p className="font-semibold text-foreground">No documents found</p>
