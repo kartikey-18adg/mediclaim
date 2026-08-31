@@ -26,7 +26,7 @@ Thumbs.db
 *.tsbuildinfo
 
 # Optional: if using testing tools
-coverage/
+/coverage/
 jest-test-results.json
 
 # Optional: if using IDEs
