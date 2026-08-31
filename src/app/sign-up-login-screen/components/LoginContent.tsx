@@ -96,12 +96,13 @@ export default function LoginContent() {
           setIsSubmitting(false);
           return;
         }
-        if (authUser) {
-          toast.success(`Welcome back! Signing in as ${data.email}…`);
-          // Router will automatically redirect via AppLayout
-          setIsSubmitting(false);
+        if (!authUser) {
+          toast.error('Sign in did not create a session. Please confirm your email and try again.');
           return;
         }
+        toast.success(`Welcome back! Signing in as ${data.email}…`);
+        router.replace('/');
+        return;
       } else {
         if (data.password !== data.confirmPassword) {
           toast.error('Passwords do not match');
