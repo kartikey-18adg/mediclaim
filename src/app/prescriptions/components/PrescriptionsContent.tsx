@@ -67,20 +67,20 @@ export default function PrescriptionsContent() {
         </div>
 
         <div className="space-y-3">
-          {appData.prescriptions.map((item) => (
-            <div key={item.name} className="rounded-2xl border border-border bg-muted/20 p-4">
+          {appData?.prescriptions?.map((item) => (
+            <div key={item?.name} className="rounded-2xl border border-border bg-muted/20 p-4">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div>
-                  <p className="text-base font-semibold text-foreground">{item.name}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{item.dosage}</p>
+                  <p className="text-base font-semibold text-foreground">{item?.name}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{item?.dosage}</p>
                 </div>
-                <span className={`badge ${accentMap[item.accent]} bg-transparent border border-current`}>{item.status}</span>
+                <span className={`badge ${accentMap?.[item?.accent]} bg-transparent border border-current`}>{item?.status}</span>
               </div>
 
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CalendarClock size={14} className="text-primary" />
-                  {item.refill}
+                  {item?.refill}
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <ShieldCheck size={14} className="text-positive" />

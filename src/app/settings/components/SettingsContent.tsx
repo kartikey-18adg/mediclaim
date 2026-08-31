@@ -74,11 +74,11 @@ export default function SettingsContent() {
               AM
             </div>
             <div>
-              <p className="text-xl font-bold text-foreground">{profile.name}</p>
-              <p className="text-sm text-muted-foreground">{profile.email}</p>
+              <p className="text-xl font-bold text-foreground">{profile?.name}</p>
+              <p className="text-sm text-muted-foreground">{profile?.email}</p>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className="badge badge-positive">{profile.plan}</span>
-                <span className="badge-muted">ID: {profile.memberId}</span>
+                <span className="badge badge-positive">{profile?.plan}</span>
+                <span className="badge-muted">ID: {profile?.memberId}</span>
               </div>
             </div>
           </div>
@@ -103,23 +103,23 @@ export default function SettingsContent() {
       </div>
 
       <div className="space-y-4">
-        {settingsSections.map((section) => (
-          <div key={section.title} className="card p-5">
-            <h2 className="text-base font-semibold text-foreground mb-4">{section.title}</h2>
+        {settingsSections?.map((section) => (
+          <div key={section?.title} className="card p-5">
+            <h2 className="text-base font-semibold text-foreground mb-4">{section?.title}</h2>
             <div className="space-y-3">
-              {section.items.map((item) => (
+              {section?.items?.map((item) => (
                 <button
-                  key={item.label}
+                  key={item?.label}
                   className="w-full flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-3 py-3 text-left transition-colors hover:bg-muted/40"
                   type="button"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-xl bg-card border border-border flex items-center justify-center text-muted-foreground">
-                      {item.icon}
+                      {item?.icon}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.value}</p>
+                      <p className="text-sm font-medium text-foreground">{item?.label}</p>
+                      <p className="text-xs text-muted-foreground">{item?.value}</p>
                     </div>
                   </div>
                   <ChevronRight size={16} className="text-muted-foreground" />

@@ -6,24 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import AppLogo from '@/components/ui/AppLogo';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
-import {
-  LayoutDashboard,
-  Heart,
-  Hospital,
-  FileText,
-  ShieldCheck,
-  Activity,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Bell,
-  LogOut,
-  User,
-  ClipboardList,
-  Stethoscope,
-  Calculator,
-  Send,
-} from 'lucide-react';
+import { LayoutDashboard, Heart, Hospital, FileText, ShieldCheck, Activity, Settings, ChevronLeft, ChevronRight, Bell, LogOut, User, Stethoscope, Calculator, Send,  } from 'lucide-react';
 
 interface NavItem {
   id: string;
